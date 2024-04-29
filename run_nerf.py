@@ -202,7 +202,10 @@ def render_path(render_poses, render_exps, hwf, K, chunk, render_kwargs, gt_imgs
 
             imageio.imwrite(filename1, rgb8)
             imageio.imwrite(filename2, rgb8_h_tm)
-            imageio.imwrite(filename3, rgbs_h[-1])
+            # imageio.imwrite(filename3, rgbs_h[-1])
+            # convert to BGR for OpenCV
+            # TODO: validate this
+            cv2.imwrite(filename3, cv2.cvtColor(rgbs_h[-1], cv2.COLOR_RGB2BGR))
 
         print('View: {:03d}, Render Time: {:.03f}'.format(i, time.time() - t))
     

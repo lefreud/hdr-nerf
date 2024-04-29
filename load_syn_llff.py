@@ -103,20 +103,18 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
             skip = 1
         else:
             skip = testskip
-            
+        
+        # TODO remove this
+        if s=='train':
+            skip = 5
+        elif s == 'test':
+            skip = 400
+
         for frame in meta['frames'][::skip]:
-            if s == 'train':
-                idx = np.random.choice([0, 2, 4]) # randomly select an exposure from {t_1, t_3, t_5} for each input view
-                fname = os.path.join(basedir, frame['file_path'] + '_%d.png' % idx)
-                imgs.append(imageio.imread(fname))
-                poses.append(np.array(frame['transform_matrix']))
-                exps.append(np.float(exps_meta[frame['file_path'] + '_%d.png' % idx]))
-            if s == 'test':
-                for i in range(num_exps):
-                    fname = os.path.join(basedir, frame['file_path'] + '_%d.png' % i)
-                    imgs.append(imageio.imread(fname))
-                    poses.append(np.array(frame['transform_matrix']))
-                    exps.append(np.float(exps_meta[frame['file_path'] + '_%d.png' % i]))
+            fname = os.path.join(basedir, frame['file_path']).replace('_linear.exr', '.png')
+            imgs.append(imageio.imread(fname))
+            poses.append(np.array(frame['transform_matrix']))
+            exps.append(np.float32(exps_meta[frame['file_path']]))
 
         imgs = (np.array(imgs) / 255.).astype(np.float32)
         poses = np.array(poses).astype(np.float32)
@@ -137,8 +135,15 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
     exps = np.concatenate(all_exps, 0).reshape([-1, 1])
     
     H, W = imgs[0].shape[:2]
-    camera_angle_x = float(meta['camera_angle_x'])
-    focal = .5 * W / np.tan(.5 * camera_angle_x)
+    if 'camera_angle_x' in meta:
+        # HDR-NeRF
+        camera_angle_x = float(meta['camera_angle_x'])
+        focal = .5 * W / np.tan(.5 * camera_angle_x)
+    elif 'fl_x' in meta:
+        # Nerfstudio OpenSFM
+        focal = meta['fl_x']
+    else:
+        raise ValueError('Unknown camera type')
 
     c2w = poses_avg(poses)
     print('recentered', c2w.shape)
@@ -172,6 +177,9 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
 
         imgs_half_res = np.zeros((imgs.shape[0], H, W, 4))
         for i, img in enumerate(imgs):
+            if img.shape[2] == 3:
+                # Convert Nerfstudio images to RGBA
+                img = np.concatenate([img, np.ones_like(img[..., :1])], -1)
             imgs_half_res[i] = cv2.resize(img, (W, H), interpolation=cv2.INTER_AREA)
         imgs = imgs_half_res
 

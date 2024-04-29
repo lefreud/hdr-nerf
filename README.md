@@ -45,14 +45,29 @@ We collect an HDR dataset (multi-view and multi-exposure) that contains 8 synthe
 
 For a quick demo, please download ```demo``` folder and move it to ```hdr-nerf``` folder.
 
+### Docker run
+
+```
+cd /home-local2/frfoc1.extra.nobkp/hdr-nerf
+```
+
+
+```
+docker build -t hdr-nerf:latest .
+```
+
+```
+docker run --mount type=bind,source=$(pwd),target=/home/myuser/hdr-nerf -u 13437 --gpus '"device=1"' -it hdr-nerf:latest bash
+```
+
 ### Render a demo
 ```
-python3 run_nerf.py --config configs/demo.txt --render_only
+python3 run_nerf.py --config configs/sofa.txt --render_only
 ```
 Both LDR and HDR results are saved in  ```<basedir>/<expname>_<render_out_path>``` . All HDR results in the experiment are tonemapped using [Phototmatix](https://www.hdrsoft.com/). Please install [Phototmatix](https://www.hdrsoft.com/) or [Luminance HDR](http://qtpfsgui.sourceforge.net/) for the visualization of HDR results.
 ## Train HDR-NeRF
 ```
-python3 run_nerf.py --config configs/flower.txt
+python3 run_nerf.py --config configs/sofa.txt
 ```
 Intermediate results and models are saved in ```<basedir>/<expname>```
 
