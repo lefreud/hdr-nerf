@@ -87,12 +87,15 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
             metas[s] = json.load(fp)
         with open(os.path.join(basedir, 'exposure_{}.json'.format(s)), 'r') as fp:
             exps_metas[s] = json.load(fp)
+        # with open(os.path.join(basedir, 'transforms.json'.format(s)), 'r') as fp:
+        #     metas[s] = json.load(fp)
+        # with open(os.path.join(basedir, 'exposures.json'.format(s)), 'r') as fp:
+        #     exps_metas[s] = json.load(fp)
 
     all_imgs = []
     all_poses = []
     all_exps = []
     counts = [0]
-    num_exps = 5
     for s in splits:
         meta = metas[s]
         exps_meta = exps_metas[s]
@@ -103,12 +106,6 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
             skip = 1
         else:
             skip = testskip
-        
-        # TODO remove this
-        if s=='train':
-            skip = 5
-        elif s == 'test':
-            skip = 400
 
         for frame in meta['frames'][::skip]:
             fname = os.path.join(basedir, frame['file_path']).replace('_linear.exr', '.png')
