@@ -102,10 +102,13 @@ def load_syn_llff_data(basedir, half_res=False, testskip=1, bd_factor=0.75, max_
         imgs = []
         poses = []
         exps = []
-        if s=='train' or testskip==0:
-            skip = 1
-        else:
-            skip = testskip
+        
+        skip = 1
+        # # TODO remove this
+        # if s=='train':
+        #     skip = 5
+        # elif s == 'test':
+        #     skip = 400
 
         for frame in meta['frames'][::skip]:
             fname = os.path.join(basedir, frame['file_path']).replace('_linear.exr', '.png')

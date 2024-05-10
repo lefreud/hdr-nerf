@@ -727,15 +727,15 @@ def train():
             }, path)
             print('Saved checkpoints at', path)
 
-        if i%args.i_video==0 and i > 0:
-            # Turn on testing mode
-            with torch.no_grad():
-                rgbs_h, rgbs, disps = render_path(render_poses, render_exps, hwf, K, args.chunk, render_kwargs_test, datatype=args.dataset_type)
-            print('Done, saving', rgbs.shape, disps.shape)
-            moviebase = os.path.join(basedir, expname, '{}_spiral_{:06d}_'.format(expname, i))
-            imageio.mimwrite(moviebase + 'rgb.mp4', to8b(rgbs), fps=30, quality=8)
-            imageio.mimwrite(moviebase + 'rgb_tm.mp4',tonemap(rgbs_h/np.mean(np.max(rgbs_h, 0) + 1)), fps=30, quality=8)
-            imageio.mimwrite(moviebase + 'disp.mp4', to8b(disps / np.max(disps)), fps=30, quality=8)
+        # if i%args.i_video==0 and i > 0:
+        #     # Turn on testing mode
+        #     with torch.no_grad():
+        #         rgbs_h, rgbs, disps = render_path(render_poses, render_exps, hwf, K, args.chunk, render_kwargs_test, datatype=args.dataset_type)
+        #     print('Done, saving', rgbs.shape, disps.shape)
+        #     moviebase = os.path.join(basedir, expname, '{}_spiral_{:06d}_'.format(expname, i))
+        #     imageio.mimwrite(moviebase + 'rgb.mp4', to8b(rgbs), fps=30, quality=8)
+        #     imageio.mimwrite(moviebase + 'rgb_tm.mp4',tonemap(rgbs_h/np.mean(np.max(rgbs_h, 0) + 1)), fps=30, quality=8)
+        #     imageio.mimwrite(moviebase + 'disp.mp4', to8b(disps / np.max(disps)), fps=30, quality=8)
 
         if i%args.i_testset==0 and i > 0:
             testsavedir = os.path.join(basedir, expname, 'testset_{:06d}'.format(i))
@@ -758,29 +758,29 @@ def train():
             if args.N_importance > 0:
                 writer.add_scalar('psnr0', psnr0.item(), global_step=global_step)
 
-            if i%args.i_img==0:
-                # Log a rendered validation view to Tensorboard
-                img_i = i_val[4] # to reduce time consumption, we only select a single view for validation
-                target = images[img_i]
-                pose = poses[img_i, :3,:4]
-                exp = exps_source[img_i,:]
-                render_kwargs_test['network_fine'].eval()
-                with torch.no_grad():
-                    rgb_h, rgb, disp, acc, extras, _ = render(H, W, K, chunk=args.chunk, exps=torch.Tensor(exp).to(device), c2w=torch.Tensor(pose).to(device),
-                                                        **render_kwargs_test)
-                render_kwargs_test['network_fine'].train()
-
-                psnr = mse2psnr(img2mse(rgb, target, 1))
-                writer.add_scalar('psnr_holdout', psnr.item(), global_step=global_step)
-
-                # writer.add_image('rgb', to8b(rgb.cpu().numpy()), global_step=global_step, dataformats='HWC')
-                # writer.add_image('disp', disp, global_step=global_step, dataformats='HW')
-                # writer.add_image('acc', acc, global_step=global_step, dataformats='HW')
-                # writer.add_image('rgb_holdout_gt', target, global_step=global_step, dataformats='HWC')
-                # if args.N_importance > 0:
-                #     writer.add_image('rgb_l0', to8b(extras['rgb_l0'].cpu().numpy()), global_step=global_step, dataformats='HWC')
-                #     writer.add_image('disp0', extras['disp0'], global_step=global_step, dataformats='HW')
-                #     writer.add_image('z_std', extras['z_std'], global_step=global_step, dataformats='HW')
+            # if i%args.i_img==0:
+            #     # Log a rendered validation view to Tensorboard
+            #     img_i = i_val[4] # to reduce time consumption, we only select a single view for validation
+            #     target = images[img_i]
+            #     pose = poses[img_i, :3,:4]
+            #     exp = exps_source[img_i,:]
+            #     render_kwargs_test['network_fine'].eval()
+            #     with torch.no_grad():
+            #         rgb_h, rgb, disp, acc, extras, _ = render(H, W, K, chunk=args.chunk, exps=torch.Tensor(exp).to(device), c2w=torch.Tensor(pose).to(device),
+            #                                             **render_kwargs_test)
+            #     render_kwargs_test['network_fine'].train()
+# 
+            #     psnr = mse2psnr(img2mse(rgb, target, 1))
+            #     writer.add_scalar('psnr_holdout', psnr.item(), global_step=global_step)
+# 
+            #     # writer.add_image('rgb', to8b(rgb.cpu().numpy()), global_step=global_step, dataformats='HWC')
+            #     # writer.add_image('disp', disp, global_step=global_step, dataformats='HW')
+            #     # writer.add_image('acc', acc, global_step=global_step, dataformats='HW')
+            #     # writer.add_image('rgb_holdout_gt', target, global_step=global_step, dataformats='HWC')
+            #     # if args.N_importance > 0:
+            #     #     writer.add_image('rgb_l0', to8b(extras['rgb_l0'].cpu().numpy()), global_step=global_step, dataformats='HWC')
+            #     #     writer.add_image('disp0', extras['disp0'], global_step=global_step, dataformats='HW')
+            #     #     writer.add_image('z_std', extras['z_std'], global_step=global_step, dataformats='HW')
         
         global_step += 1
 
